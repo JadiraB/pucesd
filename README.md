@@ -1,4 +1,4 @@
 pucesd
 ======
 
-Repositorio para la universidad
+Repositorio para proyectos de Software de la PUCE-SD
