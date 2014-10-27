@@ -1,0 +1,1188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+         Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="0.7.0">
+<database name="bdd_CC" encoding="UTF8" lc-collate="Spanish_Spain" lc-ctype="Spanish_Spain">
+	<role name="postgres"/>
+	<tablespace name="pg_default"/>
+</database>
+
+<schema name="public" protected="true" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<function name="sp_consultar"
+		window-func="false"
+		returns-setof="true"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="1000">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="record"/>
+	</return-type>
+	<parameter name="opcion" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="tipo" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="busqueda" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<definition><![CDATA[
+
+DECLARE
+tabla record;
+begin
+ IF opcion = 'guardar' THEN
+
+	alter sequence orden_tabla restart 1;
+	for tabla in select nextval('orden_tabla') ,prod_codi ,prod_nomb ,prod_cant ,prod_pvp1 ,prod_fela ,prod_fcad ,prod_ubic from productos loop
+	
+    return next tabla;
+end loop;
+            
+   
+ END IF;  
+  
+return ;
+end;
+]]></definition>
+</function>
+
+<function name="sp_consultar_bodega"
+		window-func="false"
+		returns-setof="true"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="1000">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="record"/>
+	</return-type>
+	<parameter name="opcion" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="usu_bodega" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="busqueda" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<definition><![CDATA[
+
+DECLARE
+tabla record;
+id_producto int[];
+id_bodega int;
+begin
+ IF opcion = 'bodega' THEN
+	for tabla in SELECT bode_codi, bode_nomb, bode_ubic FROM bodegas where usua_codi=usu_bodega loop
+	
+    return next tabla;
+end loop;
+            
+   
+ END IF;  
+
+
+   IF opcion = 'productos' THEN
+	select bode_codi into id_bodega from bodegas where bodegas.usua_codi= usu_bodega;
+	for tabla in select bodeprods.prod_codi as codigo,productos.prod_nomb as nombre,productos.prod_cant as stock,prod_ubic
+	from bodeprods,productos 
+	where bode_codi=id_bodega and bodeprods.prod_codi=productos.prod_codi
+ loop
+
+    return next tabla;
+end loop;
+            
+   
+ END IF;
+return ;
+end;
+]]></definition>
+</function>
+
+<function name="sp_guardar_categoria"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="void"/>
+	</return-type>
+	<parameter name="tabla" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="opcion" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="id_categoria" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="nombre_categ" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="tipo_categ" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<definition><![CDATA[
+
+DECLARE
+begin
+	IF tabla = 'tproductos' THEN
+		IF opcion = 'guardar' THEN
+
+			INSERT INTO ptipos( ptip_nomb, ptip_cate)
+				VALUES ( nombre_categ, tipo_categ);
+		END IF;
+	  
+		IF opcion = 'modificar' THEN
+			UPDATE ptipos SET 
+			ptip_nomb=nombre_categ, 
+			ptip_cate=tipo_categ
+		WHERE ptip_codi=id_categoria;
+	
+		END IF;  
+	END IF;
+
+	IF tabla = 'tservicios' THEN
+		IF opcion = 'guardar' THEN
+
+			INSERT INTO stipos(stip_nomb, stip_cate)
+				VALUES (nombre_categ, tipo_categ);
+
+		END IF;
+	  
+		IF opcion = 'modificar' THEN
+			UPDATE stipos SET 
+			stip_nomb=nombre_categ, 
+			stip_cate=tipo_categ
+			WHERE stip_codi=id_categoria;
+
+	
+		END IF;  
+	END IF;
+  
+return ;
+end;
+]]></definition>
+</function>
+
+<function name="sp_guardar_compra"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="void"/>
+	</return-type>
+	<parameter name="tabla" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="opcion" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="id_compra" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="num_factura" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="fecha_elab" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="fecha_pago" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="estado_comp" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="usuario" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="proveedor" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="producto" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="cantidad" in="true">
+		<type name="integer"/>
+	</parameter>
+	<definition><![CDATA[
+
+DECLARE
+num numeric;
+id_compra int;
+ id_bodega int;
+begin
+
+	IF tabla = 'productos' THEN
+		 IF opcion = 'guardar' THEN
+
+			id_compra=nextval('compras_comp_codi_seq'::regclass);
+			INSERT INTO compras(comp_codi,comp_nfac, comp_fech, comp_fpag, comp_esta, usua_codi, prov_codi)
+				VALUES (id_compra,num_factura, fecha_elab, fecha_pago,estado_comp, usuario,  proveedor);
+
+			INSERT INTO comproductos(cpro_cant, prod_codi, comp_codi)
+				VALUES (cantidad, producto, id_compra);
+
+			    UPDATE productos SET 
+				prod_cant=(prod_cant+cantidad) where prod_codi=producto;
+			    
+
+		   
+		 END IF;  
+	END IF;  
+
+	IF tabla = 'servicios' THEN
+		 IF opcion = 'guardar' THEN
+
+			id_compra=nextval('compras_comp_codi_seq'::regclass);
+			INSERT INTO compras(comp_codi,comp_nfac, comp_fech, comp_fpag, comp_esta, usua_codi, prov_codi)
+				VALUES (id_compra,num_factura, fecha_elab, fecha_pago,estado_comp, usuario,  proveedor);
+
+			INSERT INTO comservicios(cser_cant, serv_codi, comp_codi)
+				VALUES (cantidad, producto, id_compra);
+		   
+		 END IF;  
+	END IF;
+return ;
+end;
+]]></definition>
+</function>
+
+<function name="sp_guardar_producto"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="void"/>
+	</return-type>
+	<parameter name="opcion" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="id_producto" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="nombre_pro" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="cantidad_pro" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="estado_pro" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="tipo_pro" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="precioc1" in="true">
+		<type name="double precision"/>
+	</parameter>
+	<parameter name="precioc2" in="true">
+		<type name="double precision"/>
+	</parameter>
+	<parameter name="preciov1" in="true">
+		<type name="double precision"/>
+	</parameter>
+	<parameter name="preciov2" in="true">
+		<type name="double precision"/>
+	</parameter>
+	<parameter name="preciov3" in="true">
+		<type name="double precision"/>
+	</parameter>
+	<parameter name="preciov4" in="true">
+		<type name="double precision"/>
+	</parameter>
+	<parameter name="fecha_elab" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="fecha_caduc" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="ubicacion_pro" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="usuario" in="true">
+		<type name="integer"/>
+	</parameter>
+	<definition><![CDATA[
+
+DECLARE
+num numeric;
+id_pro int;
+ id_bodega int;
+begin
+ IF opcion = 'guardar' THEN
+
+	INSERT INTO productos(
+            prod_nomb, prod_cant, prod_esta, ptip_codi, prod_pcp1, 
+            prod_pcp2, prod_pvp1, prod_pvp2, prod_pvp3, prod_pvp4, prod_fela, 
+            prod_fcad, prod_ubic) 
+            values (nombre_pro,cantidad_pro,estado_pro,tipo_pro,precioc1,precioc2,preciov1,preciov2,preciov3,preciov4,fecha_elab,fecha_caduc,ubicacion_pro);
+            
+		select usuarios.bode_codi into id_bodega from bodegas,usuarios where usua_codi=usuario and bodegas.bode_codi=usuarios.bode_codi;
+		select prod_codi into id_pro from productos where prod_nomb=nombre_pro;
+
+         INSERT INTO bodeprods(
+            prod_codi, bode_codi)   
+            values(id_pro,id_bodega);
+            
+   
+ END IF;  
+IF opcion = 'modificar' THEN
+
+	UPDATE productos SET  
+	prod_nomb=nombre_pro, 
+	prod_cant=cantidad_pro, 
+	prod_esta=estado_pro, 
+	prod_pcp1=precioc1, 
+       prod_pcp2=precioc2, 
+       prod_pvp1=preciov1, 
+       prod_pvp2=preciov2, 
+       prod_pvp3=preciov3,
+       prod_pvp4=preciov4, 
+       prod_fela=fecha_elab, 
+       prod_fcad=fecha_caduc, 
+       prod_ubic=ubicacion_pro, 
+       ptip_codi=tipo_pro
+ 
+	where prod_codi=id_producto;
+
+		select usuarios.bode_codi into id_bodega from bodegas,usuarios where usua_codi=usuario and bodegas.bode_codi=usuarios.bode_codi;
+		select prod_codi into id_pro from productos where prod_nomb=nombre_pro;   
+   
+ END IF;  
+  
+return ;
+end;
+]]></definition>
+</function>
+
+<function name="sp_guardar_venta"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="void"/>
+	</return-type>
+	<parameter name="opcion" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="id_ventaserv" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="id_servicio" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="id_venta" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="cantidad" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="precio" in="true">
+		<type name="double precision"/>
+	</parameter>
+	<definition><![CDATA[
+
+DECLARE
+num numeric;
+id_pro int;
+ id_bodega int;
+begin
+		 IF opcion = 'guardarServ' THEN
+
+			INSERT INTO venservicios(serv_codi, vent_codi, vser_cant, vser_prec)
+				VALUES (id_servicio, id_venta, cantidad, precio);
+				
+		 END IF; 
+
+		 IF opcion = 'guardarProd' THEN
+
+			INSERT INTO venproductos(prod_codi, vent_codi, vpro_cant, vpro_prec)
+				VALUES (id_servicio, id_venta, cantidad, precio);
+
+
+			UPDATE productos SET 
+				prod_cant=prod_cant-cantidad
+			WHERE prod_codi=id_servicio;
+
+				
+		 END IF; 
+  
+return ;
+end;
+]]></definition>
+</function>
+
+<sequence name="aseguradoras_aseg_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="bodegas_bode_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="bodegas">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="56" y="33.25"/>
+	<column name="bode_codi" not-null="true" default-value="nextval('bodegas_bode_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="bode_nomb">
+		<type name="character varying" length="20"/>
+	</column>
+	<column name="bode_ubic">
+		<type name="character varying" length="20"/>
+	</column>
+	<constraint name="pk_bode_codi" type="pk-constr" factor="100" table="public.bodegas">
+		<columns names="bode_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="bodeprods_bopr_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="bodeprods">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="109" y="332"/>
+	<column name="bopr_codi" not-null="true" default-value="nextval('bodeprods_bopr_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="prod_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="bode_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<constraint name="pk_bopr_codi" type="pk-constr" factor="100" table="public.bodeprods">
+		<columns names="bopr_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="clientes_cli_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="clientes">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1003" y="612"/>
+	<column name="cli_codi" not-null="true" default-value="nextval('clientes_cli_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="cli_cedu">
+		<type name="character varying" length="13"/>
+	</column>
+	<column name="cli_nomb">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="cli_apel">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="cli_tipo">
+		<type name="integer"/>
+	</column>
+	<column name="cli_esta">
+		<type name="integer"/>
+	</column>
+	<constraint name="pk_cli_codi" type="pk-constr" factor="100" table="public.clientes">
+		<columns names="cli_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="compras_comp_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="compras">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1060.5" y="390.5"/>
+	<column name="comp_codi" not-null="true" default-value="nextval('compras_comp_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="comp_fact" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="comp_fech" not-null="true">
+		<type name="character varying" length="20"/>
+	</column>
+	<column name="comp_fpag" not-null="true">
+		<type name="character varying" length="20"/>
+	</column>
+	<column name="comp_esta" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="usua_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="comp_cur">
+		<type name="smallint"/>
+	</column>
+	<column name="comp_tipo">
+		<type name="smallint"/>
+	</column>
+	<column name="prov_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<constraint name="pk_comp_codi" type="pk-constr" factor="100" table="public.compras">
+		<columns names="comp_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="comproductos_cpro_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="comproductos">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="998.75" y="150.4"/>
+	<column name="cpro_codi" not-null="true" default-value="nextval('comproductos_cpro_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="cpro_cant" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="prod_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="comp_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<constraint name="pk_cpro_codi" type="pk-constr" factor="100" table="public.comproductos">
+		<columns names="cpro_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="comservicios_cser_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="descuentos_desc_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="empresas_empr_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="facturas_fact_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="grupos_grup_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="orden_tabla"
+	 start="1" increment="1"
+	 min-value="0" max-value="9999999999999999"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="parametros_parm_codi_seq"
+	 start="1" increment="1"
+	 min-value="1" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="productos_prod_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="productos">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="512" y="92.8"/>
+	<column name="prod_codi" not-null="true" default-value="nextval('productos_prod_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="prod_nomb">
+		<type name="character varying" length="40"/>
+	</column>
+	<column name="prod_cant">
+		<type name="integer"/>
+	</column>
+	<column name="prod_pcp">
+		<type name="numeric" length="10" precision="2"/>
+	</column>
+	<column name="prod_fela">
+		<type name="character varying" length="20"/>
+	</column>
+	<column name="prod_fcad">
+		<type name="character varying" length="20"/>
+	</column>
+	<column name="prod_ubic">
+		<type name="character varying" length="20"/>
+	</column>
+	<column name="prod_esta">
+		<type name="integer"/>
+	</column>
+	<column name="tipo_producto" not-null="true">
+		<type name="smallint"/>
+	</column>
+	<constraint name="pk_prod_codi" type="pk-constr" factor="100" table="public.productos">
+		<columns names="prod_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="proveedores_prov_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="proveedores">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1276.75" y="60.3"/>
+	<column name="prov_codi" not-null="true" default-value="nextval('proveedores_prov_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="prov_ruc">
+		<type name="character varying" length="13"/>
+	</column>
+	<column name="prov_nomb">
+		<type name="character varying" length="80"/>
+	</column>
+	<column name="prov_dire">
+		<type name="character varying" length="80"/>
+	</column>
+	<column name="prov_tel1">
+		<type name="character varying" length="12"/>
+	</column>
+	<column name="prov_cor1">
+		<type name="character varying" length="40"/>
+	</column>
+	<column name="prov_sucu">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="prov_esta">
+		<type name="integer"/>
+	</column>
+	<constraint name="pk_prov_codi" type="pk-constr" factor="100" table="public.proveedores">
+		<columns names="prov_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="ptipos_ptip_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="servicios_serv_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="stipos_stip_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="subgrupos_sgru_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="usuarios_usua_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="usuarios">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="34.25" y="463.7"/>
+	<column name="usua_codi" not-null="true" default-value="nextval('usuarios_usua_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="usua_login">
+		<type name="character varying" length="15"/>
+	</column>
+	<column name="usua_pass">
+		<type name="character varying" length="15"/>
+	</column>
+	<column name="usua_nombre">
+		<type name="character varying" length="60"/>
+	</column>
+	<column name="usua_tipo">
+		<type name="integer"/>
+	</column>
+	<column name="usua_esta" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="bode_codi" default-value="0">
+		<type name="integer"/>
+	</column>
+	<constraint name="pk_usua_codi" type="pk-constr" factor="100" table="public.usuarios">
+		<columns names="usua_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="ventas_vent_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<sequence name="venproductos_vpro_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="pedidosproductos">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="538" y="423.45"/>
+	<column name="pedipro_codi" not-null="true" default-value="nextval('venproductos_vpro_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="pedipro_cant" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="prod_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="pedi_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<constraint name="pk_vpro_codi" type="pk-constr" factor="100" table="public.pedidosproductos">
+		<columns names="pedipro_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="venservicios_vser_codi_seq"
+	 start="1" increment="1"
+	 min-value="0" max-value="9223372036854775807"
+	 cache="1" cycle="false">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="pedidos">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="518.75" y="615.6"/>
+	<column name="pedi_codi" not-null="true" default-value="nextval('ventas_vent_codi_seq'::regclass)">
+		<type name="integer"/>
+	</column>
+	<column name="pedi_fdev">
+		<type name="character varying" length="20"/>
+		<comment><![CDATA[fecha de devolucion del bien]]></comment>
+	</column>
+	<column name="pedi_fentre">
+		<type name="character varying" length="20"/>
+		<comment><![CDATA[fecha de entrega del bien]]></comment>
+	</column>
+	<column name="pedi_clie" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="usua_codi" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="pedi_esta" not-null="true">
+		<type name="integer"/>
+	</column>
+	<constraint name="pk_vent_codi" type="pk-constr" factor="100" table="public.pedidos">
+		<columns names="pedi_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<function name="sp_guardar_cliente"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="integer"/>
+	</return-type>
+	<parameter name="opcion" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="id" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="ruc" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="nombres" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="apellidos" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="telefono1" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="telefono2" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="correo1" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="correo2" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="direccion" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="tipo" in="true">
+		<type name="integer"/>
+	</parameter>
+	<parameter name="aseguradora" in="true">
+		<type name="integer"/>
+	</parameter>
+	<definition><![CDATA[
+
+begin	
+
+	if(opcion = 0)then
+	
+		INSERT INTO clientes(cli_apel, cli_nomb, cli_ruc, cli_tipo, cli_cor1, cli_cor2, 
+		    cli_tel1, cli_tel2, cli_dire, cli_esta, sgru_codi)
+		values(apellidos,nombres,ruc,tipo,correo1,correo2,telefono1,telefono2,direccion,1,aseguradora);
+
+		return 1;
+	end if;
+
+	if(opcion = 1)then
+		
+		UPDATE clientes SET 
+			cli_apel=apellidos, 
+			cli_nomb=nombres, 
+			cli_ruc=ruc, 
+			cli_tipo=tipo, 
+			cli_cor1=correo1, 
+			cli_cor2=correo2, 
+			cli_tel1=telefono1, 
+			cli_tel2=telefono1, 
+			cli_dire=direccion, 
+			sgru_codi=aseguradora
+		WHERE cli_codi=codigo;
+
+
+		return 1;
+	end if;
+
+		
+	
+end;
+]]></definition>
+</function>
+
+<function name="sp_contar_registros"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="integer"/>
+	</return-type>
+	<parameter name="tabla" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="consulta" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<definition><![CDATA[
+
+DECLARE
+registros integer;
+begin
+registros:=-1;
+	 IF tabla = 'aseguradoras' THEN
+			select count(*) into registros from clientes where (cli_ruc=consulta and cli_esta=1);
+	 END IF;
+
+return registros;
+end;
+]]></definition>
+</function>
+
+<function name="sp_eliminar"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" protected="true" sql-disabled="true"/>
+	<return-type>
+	<type name="integer"/>
+	</return-type>
+	<parameter name="tabla" in="true">
+		<type name="character varying"/>
+	</parameter>
+	<parameter name="id" in="true">
+		<type name="integer"/>
+	</parameter>
+	<definition><![CDATA[
+
+begin	
+
+	if(tabla = 'clientes')then
+		delete from clientes where cli_codi=id;
+		return 1;
+	end if;	
+	
+end;
+]]></definition>
+</function>
+
+<table name="ptipos">
+	<schema name="public"/>
+	<position x="920.25" y="42.25"/>
+	<column name="ptip_codi" not-null="true">
+		<type name="serial"/>
+	</column>
+	<column name="ptip_nombre" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<constraint name="pk_ptipos" type="pk-constr" factor="10" table="public.ptipos">
+		<columns names="ptip_codi" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<constraint name="bodega_bodeprod_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.bodegas" table="public.bodeprods">
+	<columns names="bode_codi" ref-type="src-columns"/>
+	<columns names="bode_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="producto_bodeprod_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.productos" table="public.bodeprods">
+	<columns names="prod_codi" ref-type="src-columns"/>
+	<columns names="prod_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="proveedores_compras_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.proveedores" table="public.compras">
+	<columns names="prov_codi" ref-type="src-columns"/>
+	<columns names="prov_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="compras_comproductos_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.compras" table="public.comproductos">
+	<columns names="comp_codi" ref-type="src-columns"/>
+	<columns names="comp_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="producto_compra_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.productos" table="public.comproductos">
+	<columns names="prod_codi" ref-type="src-columns"/>
+	<columns names="prod_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="fk_tipos_productos" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.ptipos" table="public.productos">
+	<columns names="tipo_producto" ref-type="src-columns"/>
+	<columns names="ptip_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="producto_venprod_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.productos" table="public.pedidosproductos">
+	<columns names="prod_codi" ref-type="src-columns"/>
+	<columns names="prod_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="venta_venprod_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.pedidos" table="public.pedidosproductos">
+	<columns names="pedi_codi" ref-type="src-columns"/>
+	<columns names="pedi_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="fk_clientes" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.clientes" table="public.pedidos">
+	<columns names="pedi_clie" ref-type="src-columns"/>
+	<columns names="cli_codi" ref-type="dst-columns"/>
+</constraint>
+<constraint name="fk_usuarios" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.usuarios" table="public.pedidos">
+	<columns names="usua_codi" ref-type="src-columns"/>
+	<columns names="usua_codi" ref-type="dst-columns"/>
+</constraint>
+<relationship name="rel_bodeprods_bodegas" type="relfk"
+	 src-table="public.bodeprods"
+	 dst-table="public.bodegas"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_bodeprods_productos" type="relfk"
+	 src-table="public.bodeprods"
+	 dst-table="public.productos"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_compras_proveedores" type="relfk"
+	 src-table="public.compras"
+	 dst-table="public.proveedores"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_comproductos_compras" type="relfk"
+	 src-table="public.comproductos"
+	 dst-table="public.compras"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_comproductos_productos" type="relfk"
+	 src-table="public.comproductos"
+	 dst-table="public.productos"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_pedidos_productos" type="relfk"
+	 src-table="public.pedidosproductos"
+	 dst-table="public.productos"
+	 src-required="true" dst-required="true">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
+
+<relationship name="rel_pedidosproductos_pedidos" type="relfk"
+	 src-table="public.pedidosproductos"
+	 dst-table="public.pedidos"
+	 src-required="true" dst-required="true">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
+
+<relationship name="rel_productos_ptipos" type="relfk"
+	 src-table="public.productos"
+	 dst-table="public.ptipos"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_pedidos_clientes" type="relfk"
+	 src-table="public.pedidos"
+	 dst-table="public.clientes"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_pedidos_usuarios" type="relfk"
+	 src-table="public.pedidos"
+	 dst-table="public.usuarios"
+	 src-required="true" dst-required="true"/>
+
+</dbmodel>
