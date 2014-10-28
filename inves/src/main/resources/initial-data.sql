@@ -1,0 +1,1 @@
+insert into ptipos (ptip_codi, ptip_nombre) values (1, 'Hardware');

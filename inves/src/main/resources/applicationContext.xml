@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:repository="http://www.springframework.org/schema/data/repository"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/data/jpa 
+		http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+
+ 	<!-- enabling annotation driven configuration -->
+    <context:annotation-config/>
+    
+    
+	<!-- Scans the classpath of this application for @Components to deploy as beans  --> 
+	<context:component-scan base-package="com.inves.services" />
+	
+	<!-- Import Persistence --> 
+	<import resource="persistenceContext.xml" />
+	
+	
+	<!-- Import Security 
+	<import resource="securityContext.xml" />
+	-->
+	 
+	<!-- Auditing 
+	<jpa:auditing auditor-aware-ref="springSecurityAuditorAware"/>
+	 -->
+	
+	<!-- Scans the classpath of this applicaction for Repositories to deploy as beans -->   
+	<jpa:repositories base-package="com.inves.repos"/>
+	
+</beans>
