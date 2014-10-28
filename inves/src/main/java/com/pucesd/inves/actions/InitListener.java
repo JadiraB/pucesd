@@ -1,4 +1,4 @@
-package com.pucesd.inves;
+package com.pucesd.inves.actions;
 
 import ognl.OgnlRuntime;
 

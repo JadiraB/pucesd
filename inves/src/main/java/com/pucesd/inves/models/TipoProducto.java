@@ -1,4 +1,4 @@
-package com.inves.models;
+package com.pucesd.inves.models;
 
 import java.io.Serializable;
 

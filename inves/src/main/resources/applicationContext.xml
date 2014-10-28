@@ -18,7 +18,7 @@
     
     
 	<!-- Scans the classpath of this application for @Components to deploy as beans  --> 
-	<context:component-scan base-package="com.inves.services" />
+	<context:component-scan base-package="com.pucesd.inves.services" />
 	
 	<!-- Import Persistence --> 
 	<import resource="persistenceContext.xml" />
@@ -33,6 +33,6 @@
 	 -->
 	
 	<!-- Scans the classpath of this applicaction for Repositories to deploy as beans -->   
-	<jpa:repositories base-package="com.inves.repos"/>
+	<jpa:repositories base-package="com.pucesd.inves.repos"/>
 	
 </beans>

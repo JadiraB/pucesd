@@ -1,9 +1,9 @@
 package com.pucesd.inves.actions;
 
-import com.inves.models.TipoProducto;
-import com.inves.repos.TipoProductoRepository;
 import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionSupport;
+import com.pucesd.inves.models.TipoProducto;
+import com.pucesd.inves.repos.TipoProductoRepository;
 
 import org.apache.struts2.convention.annotation.Result;
 import org.apache.struts2.convention.annotation.Results;
